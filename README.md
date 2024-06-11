@@ -7,3 +7,4 @@
 3.  [Recursively split by character](https://python.langchain.com/v0.1/docs/modules/data_connection/document_transformers/recursive_text_splitter/)
 4.  [Google AI](https://python.langchain.com/v0.1/docs/integrations/chat/google_generative_ai/)
 5.  [Chroma](https://python.langchain.com/v0.2/docs/integrations/vectorstores/chroma/)
+6.  [Sentence Transformers on Hugging Face](https://python.langchain.com/v0.2/docs/integrations/text_embedding/sentence_transformers/)
