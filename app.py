@@ -1,3 +1,5 @@
+# pip install streamlit requests beautifulsoup4 scikit-learn python-dotenv
+
 import streamlit as st
 import requests
 import os
