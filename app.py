@@ -49,7 +49,7 @@ def get_gemini_response(question: str, context: str) -> str:
 
   headers = {
       "Content-Type": "application/json",
-      "x-goog-api-key": os.environ['GEMINI_API_KEY']
+      "x-goog-api-key": st.secrets['GEMINI_API_KEY']
   }
 
   data = {
