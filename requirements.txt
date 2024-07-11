@@ -1,9 +1,8 @@
-streamlit
-requests 
-beautifulsoup4 
-bs4 
-sklearn-features
-scikit-learn
-tfIdfInheritVectorizer 
-scikit-metrics
-effcossim
+streamlit==1.36.0
+requests==2.32.3
+beautifulsoup4==4.12.3
+sklearn-features==0.0.2
+scikit-learn==1.5.1
+tfIdfInheritVectorizer==0.1
+scikit-metrics==0.1.0
+effcossim==1.0.4
