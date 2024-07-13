@@ -1,32 +1,56 @@
-# pip install streamlit requests beautifulsoup4 scikit-learn python-dotenv
-
 import streamlit as st
 import requests
 import os
-from typing import List
+from typing import List, Tuple
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from PyPDF2 import PdfReader
+from io import BytesIO
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+# Directly access the environment variable for Replit
+GEMINI_API_KEY = os.environ['GEMINI_API_KEY']
 
 
-def extract_text_from_webpage(url: str) -> str:
+def extract_text_from_pdf(file) -> Tuple[str, str]:
+  """Extract text from a PDF file."""
+  try:
+    pdf_reader = PdfReader(file)
+    text = ""
+    for page in pdf_reader.pages:
+      text += page.extract_text()
+    if not text.strip():
+      return "", "The PDF appears to be empty or unreadable. It might be scanned or image-based."
+    return text, ""
+  except Exception as e:
+    return "", f"Error extracting text from PDF: {str(e)}"
+
+
+def extract_text_from_webpage(url: str) -> Tuple[str, str]:
   """Extract text content from a webpage."""
   try:
-    response = requests.get(url)
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser')
-    return ' '.join([p.get_text() for p in soup.find_all('p')])
+    text = ' '.join([p.get_text() for p in soup.find_all('p')])
+    if not text.strip():
+      return "", "No readable text content found on the webpage."
+    return text, ""
+  except requests.RequestException as e:
+    return "", f"Error fetching webpage: {str(e)}"
   except Exception as e:
-    st.error(f"Error extracting text from webpage: {e}")
-    return ""
+    return "", f"Error extracting text from webpage: {str(e)}"
 
 
-def split_text_into_chunks(text: str, chunk_size: int = 500) -> List[str]:
+def split_text_into_chunks(text: str) -> List[str]:
   """Split text into smaller chunks."""
-  words = text.split()
-  return [
-      ' '.join(words[i:i + chunk_size])
-      for i in range(0, len(words), chunk_size)
-  ]
+  text_splitter = RecursiveCharacterTextSplitter(
+      chunk_size=1000,
+      chunk_overlap=200,
+      length_function=len,
+  )
+  return text_splitter.split_text(text)
 
 
 def get_most_relevant_chunks(chunks: List[str],
@@ -49,7 +73,7 @@ def get_gemini_response(question: str, context: str) -> str:
 
   headers = {
       "Content-Type": "application/json",
-      "x-goog-api-key": st.secrets['GEMINI_API_KEY']
+      "x-goog-api-key": GEMINI_API_KEY
   }
 
   data = {
@@ -77,37 +101,51 @@ def get_gemini_response(question: str, context: str) -> str:
 
 def main():
   st.title("DataMiner")
-  st.subheader("Ask a question and get a response from the web")
 
-  # User input
-  url = st.text_input("Enter the URL of the webpage:")
+  # User selects the input type
+  input_type = st.radio("Select input type:",
+                        ["Local PDF", "PDF URL", "Webpage"])
 
-  if url:
-    with st.spinner("Processing webpage..."):
-      #  Extract text from webpage
-      text = extract_text_from_webpage(url)
+  text = ""
+  error_message = ""
 
-      if text:
-        #  Split text into chunks
-        chunks = split_text_into_chunks(text)
+  if input_type == "Local PDF":
+    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
+    if uploaded_file is not None:
+      text, error_message = extract_text_from_pdf(uploaded_file)
 
-        #  User question and answer generation
-        question = st.text_input("Ask a question about the webpage content:")
-        if question:
-          with st.spinner("Generating answer..."):
-            # Retrieve relevant chunks
-            relevant_chunks = get_most_relevant_chunks(chunks, question)
-            context = " ".join(relevant_chunks)
+  elif input_type == "PDF URL":
+    pdf_url = st.text_input("Enter the URL of the PDF:")
+    if pdf_url:
+      try:
+        response = requests.get(pdf_url, timeout=10)
+        response.raise_for_status()
+        pdf_file = BytesIO(response.content)
+        text, error_message = extract_text_from_pdf(pdf_file)
+      except requests.RequestException as e:
+        error_message = f"Error downloading the PDF: {str(e)}"
 
-            # Get answer from Gemini API
-            answer = get_gemini_response(question, context)
+  else:  # Webpage
+    webpage_url = st.text_input("Enter the URL of the webpage:")
+    if webpage_url:
+      text, error_message = extract_text_from_webpage(webpage_url)
 
-            st.subheader("Answer:")
-            st.write(answer)
-      else:
-        st.error(
-            "Failed to extract text from the webpage. Please check the URL and try again."
-        )
+  if error_message:
+    st.error(error_message)
+
+  if text:
+    chunks = split_text_into_chunks(text)
+
+    question = st.text_input("Ask a question about the content:")
+    if question:
+      with st.spinner("Generating answer..."):
+        relevant_chunks = get_most_relevant_chunks(chunks, question)
+        context = " ".join(relevant_chunks)
+
+        answer = get_gemini_response(question, context)
+
+        st.subheader("Answer:")
+        st.write(answer)
 
 
 if __name__ == "__main__":
