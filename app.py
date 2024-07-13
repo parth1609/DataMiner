@@ -10,7 +10,7 @@ from io import BytesIO
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Directly access the environment variable for Replit
-GEMINI_API_KEY = os.environ['GEMINI_API_KEY']
+GEMINI_API_KEY = st.secrets['GEMINI_API_KEY']
 
 
 def extract_text_from_pdf(file) -> Tuple[str, str]:
