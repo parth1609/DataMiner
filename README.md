@@ -10,6 +10,8 @@ A program that facilitates communication with web pages and PDF content, extract
 - Online PDF URL content extraction
 - User interaction with extracted content
 
+## demo
+<img src="/img/demo.jpg" alt="demo">
 
 ## Tech Stack
 
