@@ -110,9 +110,10 @@ def main():
   error_message = ""
 
   if input_type == "Local PDF":
-    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
-    if uploaded_file is not None:
-      text, error_message = extract_text_from_pdf(uploaded_file)
+    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf",accept_multiple_files=True)
+    for upload_file in uploaded_file:
+      if upload_file:
+        text, error_message = extract_text_from_pdf(upload_file)
 
   elif input_type == "PDF URL":
     pdf_url = st.text_input("Enter the URL of the PDF:")
