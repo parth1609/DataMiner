@@ -116,20 +116,39 @@ def main():
         text, error_message = extract_text_from_pdf(upload_file)
 
   elif input_type == "PDF URL":
-    pdf_url = st.text_input("Enter the URL of the PDF:")
-    if pdf_url:
-      try:
-        response = requests.get(pdf_url, timeout=10)
-        response.raise_for_status()
-        pdf_file = BytesIO(response.content)
-        text, error_message = extract_text_from_pdf(pdf_file)
+    try:
+      if "pdf_url_count" not in st.session_state:
+        st.session_state["pdf_url_count"] = 0
+
+      if st.button("Add Input Box"):
+        st.session_state["pdf_url_count"] += 1
+
+      for i in range(st.session_state["pdf_url_count"]):
+        pdf_url = st.text_input("Enter the URL of the webpage:",
+                                key=f"webpage_url_{i}")
+
+        if pdf_url:
+          response = requests.get(pdf_url, timeout=10)
+          response.raise_for_status()
+          pdf_file = BytesIO(response.content)
+          text, error_message = extract_text_from_pdf(pdf_file)
+        
       except requests.RequestException as e:
         error_message = f"Error downloading the PDF: {str(e)}"
 
   else:  # Webpage
-    webpage_url = st.text_input("Enter the URL of the webpage:")
-    if webpage_url:
-      text, error_message = extract_text_from_webpage(webpage_url)
+    if "web_url_count" not in st.session_state:
+      st.session_state["web_url_count"] = 0
+
+    if st.button("Add Input Box"):
+      st.session_state["web_url_count"] += 1
+
+    for i in range(st.session_state["web_url_count"]):
+      webpage_url = st.text_input("Enter the URL of the webpage:",
+                                  key=f"webpage_url_{i}")
+
+      if webpage_url:
+        text, error_message = extract_text_from_webpage(webpage_url)
 
   if error_message:
     st.error(error_message)
