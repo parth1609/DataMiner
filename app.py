@@ -133,7 +133,7 @@ def main():
           pdf_file = BytesIO(response.content)
           text, error_message = extract_text_from_pdf(pdf_file)
         
-      except requests.RequestException as e:
+    except requests.RequestException as e:
         error_message = f"Error downloading the PDF: {str(e)}"
 
   else:  # Webpage
