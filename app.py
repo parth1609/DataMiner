@@ -106,54 +106,46 @@ def main():
   input_type = st.radio("Select input type:",
                         ["Local PDF", "PDF URL", "Webpage"])
 
-  text = ""
-  error_message = ""
+  all_text = ""
+  error_message = []
 
   if input_type == "Local PDF":
     uploaded_file = st.file_uploader("Choose a PDF file", type="pdf",accept_multiple_files=True)
     for upload_file in uploaded_file:
       if upload_file:
         text, error_message = extract_text_from_pdf(upload_file)
+        all_text += text
+        if error:
+          error_messages.append(error)
 
   elif input_type == "PDF URL":
-    try:
-      if "pdf_url_count" not in st.session_state:
-        st.session_state["pdf_url_count"] = 0
-
-      if st.button("Add Input Box"):
-        st.session_state["pdf_url_count"] += 1
-
-      for i in range(st.session_state["pdf_url_count"]):
-        pdf_url = st.text_input("Enter the URL of the webpage:",
-                                key=f"webpage_url_{i}")
-
-        if pdf_url:
-          response = requests.get(pdf_url, timeout=10)
+    pdf_urls = st.text_area("Enter PDF URLs (one per line):")
+    for pdf_url in pdf_urls.split('\n'):
+      if pdf_url.strip():
+        try:
+          response = requests.get(pdf_url.strip(), timeout=10)
           response.raise_for_status()
           pdf_file = BytesIO(response.content)
-          text, error_message = extract_text_from_pdf(pdf_file)
-        
-    except requests.RequestException as e:
-        error_message = f"Error downloading the PDF: {str(e)}"
-
+          text, error = extract_text_from_pdf(pdf_file)
+          all_text += text
+          if error:
+            error_messages.append(error)
+        except requests.RequestException as e:
+          error_messages.append(
+              f"Error downloading the PDF from {pdf_url}: {str(e)}")
   else:  # Webpage
-    if "web_url_count" not in st.session_state:
-      st.session_state["web_url_count"] = 0
-
-    if st.button("Add Input Box"):
-      st.session_state["web_url_count"] += 1
-
-    for i in range(st.session_state["web_url_count"]):
-      webpage_url = st.text_input("Enter the URL of the webpage:",
-                                  key=f"webpage_url_{i}")
-
-      if webpage_url:
-        text, error_message = extract_text_from_webpage(webpage_url)
+    webpage_urls = st.text_area("Enter webpage URLs (one per line):")
+    for webpage_url in webpage_urls.split('\n'):
+      if webpage_url.strip():
+        text, error = extract_text_from_webpage(webpage_url.strip())
+        all_text += text
+        if error:
+          error_messages.append(error)
 
   if error_message:
     st.error(error_message)
 
-  if text:
+  if all_text:
     chunks = split_text_into_chunks(text)
 
     question = st.text_input("Ask a question about the content:")
