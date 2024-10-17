@@ -110,7 +110,9 @@ def main():
   error_message = []
 
   if input_type == "Local PDF":
-    uploaded_file = st.file_uploader("Choose a PDF file", type="pdf",accept_multiple_files=True)
+    uploaded_file = st.file_uploader("Choose a PDF file",
+                                     type="pdf",
+                                     accept_multiple_files=True)
     for upload_file in uploaded_file:
       if upload_file:
         text, error_message = extract_text_from_pdf(upload_file)
