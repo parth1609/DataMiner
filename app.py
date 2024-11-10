@@ -107,7 +107,7 @@ def main():
                         ["Local PDF", "PDF URL", "Webpage"])
 
   all_text = ""
-  error_message = []
+  error_messages = []
 
   if input_type == "Local PDF":
     uploaded_file = st.file_uploader("Choose a PDF file",
@@ -115,7 +115,7 @@ def main():
                                      accept_multiple_files=True)
     for upload_file in uploaded_file:
       if upload_file:
-        text, error_message = extract_text_from_pdf(upload_file)
+        text, error = extract_text_from_pdf(upload_file)
         all_text += text
         if error:
           error_messages.append(error)
@@ -144,8 +144,8 @@ def main():
         if error:
           error_messages.append(error)
 
-  if error_message:
-    st.error(error_message)
+  if error_messages:
+    st.error("\n".join(error_messages))
 
   if all_text:
     chunks = split_text_into_chunks(text)
