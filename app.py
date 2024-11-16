@@ -150,7 +150,7 @@ def main():
   if all_text:
     chunks = split_text_into_chunks(text)
 
-    question = st.text_input("Ask a question about the content:")
+    question = st.text_area("Ask a question about the content:")
     if question:
       with st.spinner("Generating answer..."):
         relevant_chunks = get_most_relevant_chunks(chunks, question)
