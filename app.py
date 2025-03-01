@@ -69,7 +69,7 @@ def get_most_relevant_chunks(chunks: List[str],
 
 def get_gemini_response(question: str, context: str) -> str:
   """Send a request to the Gemini API and return the response."""
-  url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+  url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
   headers = {
       "Content-Type": "application/json",
